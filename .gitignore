@@ -1,0 +1,30 @@
+# Diretórios de build
+/target/
+
+# Arquivos de configuração de IDE
+*.iml
+.classpath
+.project
+.settings/
+.idea/
+.vscode/
+
+# Arquivos de log
+*.log
+
+# Arquivos temporários e de backup
+*.tmp
+*.bak
+*.swp
+
+# Arquivos de sistema operacional
+.DS_Store
+Thumbs.db
+
+# Variáveis de ambiente
+.env
+.local
+
+# Configurações específicas do Spring (ex: senhas locais)
+application-*.properties
+application-*.yml
