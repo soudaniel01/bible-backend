@@ -14,6 +14,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.config.Customizer;
 import org.springframework.http.HttpMethod;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 import com.api.auth.security.ratelimit.RateLimitFilter;
 
@@ -40,7 +41,9 @@ public class SecurityConfig {
 	};
 	
         @Bean
-        SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception{
+        SecurityFilterChain securityFilterChain(
+                HttpSecurity httpSecurity,
+                CorsConfigurationSource corsConfigurationSource) throws Exception{
                 httpSecurity.csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .headers(headers -> headers
@@ -59,11 +62,8 @@ public class SecurityConfig {
                         })
                 )
                 .authorizeHttpRequests(auth -> {
-                        auth.requestMatchers("/api/auth/login").permitAll();
-                        // Corrigido: refresh deve ser público para funcionar com access token expirado
-                        auth.requestMatchers("/api/auth/refresh").permitAll();
-                        // Logout deve ser permitido publicamente pois depende apenas do refresh token (que pode estar no cookie)
-                        auth.requestMatchers("/api/auth/logout", "/api/auth/logout-all").permitAll();
+                        auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
+                        auth.requestMatchers("/api/auth/**").permitAll();
                         
                         // Registro de usuários continua aberto
                         auth.requestMatchers(HttpMethod.POST, "/api/users").permitAll();
@@ -82,11 +82,10 @@ public class SecurityConfig {
                         // Health e Swagger liberados
                         auth.requestMatchers("/api/health", "/actuator/health/**", "/actuator/info").permitAll();
                         auth.requestMatchers(SWAGGER_LIST).permitAll();
-                        auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
                         
                         auth.anyRequest().authenticated();
                 })
-                .cors(Customizer.withDefaults())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(401);
